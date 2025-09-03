@@ -1,0 +1,45 @@
+spring.application.name=gateway
+server.port = 8081
+
+spring.security.oauth2.client.provider.spring.issuer-uri=http://localhost:9090
+
+spring.security.oauth2.client.registration.spring.provider=spring
+spring.security.oauth2.client.registration.spring.client-id=spring
+spring.security.oauth2.client.registration.spring.client-secret=spring
+spring.security.oauth2.client.registration.spring.authorization-grant-type=authorization_code
+spring.security.oauth2.client.registration.spring.client-authentication-method=client_secret_basic
+spring.security.oauth2.client.registration.spring.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
+spring.security.oauth2.client.registration.spring.scope=openid
+
+
+
+
+
+
+
+server:
+  port: 9090
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost/mydatabase
+    username: myuser
+    password: secret
+  security:
+    oauth2:
+      authorizationserver:
+        client:
+          oidc-client:
+            registration:
+              client-id: "spring"
+              client-secret: "{noop}spring"
+              client-authentication-methods:
+                - "client_secret_basic"
+              authorization-grant-types:
+                - "authorization_code"
+                # - "client_credentials"
+                - "refresh_token"
+              redirect-uris:
+                - "http://127.0.0.1:8081/login/oauth2/code/spring"
+              scopes:
+                - "openid"
+                - "profile"
