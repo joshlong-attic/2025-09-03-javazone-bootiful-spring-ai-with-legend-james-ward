@@ -1,6 +1,7 @@
 package com.example.scheduler;
 
 import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -30,8 +31,8 @@ public class SchedulerApplication {
 @Service
 class DogAdoptionScheduler {
 
-    @Tool
-    String schedule(int dogId, String dogName) {
+    @Tool(description = "schedule an appointment to pickup a dog from a pooch palace location")
+    String schedule(@ToolParam(description = "the id of the dog") int dogId, @ToolParam(description = "the name of the dog") String dogName) {
         var i = Instant
                 .now()
                 .plus(3, ChronoUnit.DAYS)
