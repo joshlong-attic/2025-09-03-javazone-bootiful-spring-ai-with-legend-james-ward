@@ -58,8 +58,8 @@
 </head>
 <body>
 <div class="loading">
-        welcome, <strong><span class="username"></span></strong>
-    </div>
+    welcome, <strong><span class="username"></span></strong>
+</div>
 <div class="container">
 
     <h1>Dog Registry</h1>
@@ -67,18 +67,57 @@
     <div id="content">
         <div class="loading">Loading dog data...</div>
     </div>
+
+    <div>
+        <form>
+            <textarea style="width:100%" rows="10" id="ask" name="ask" placeholder="Type here…"></textarea>
+            <br/>
+            <button id="askButton" type="submit">ask away</button>
+
+            <div id="reply"></div>
+        </form>
+    </div>
+
 </div>
 
 <script>
     window.addEventListener('load', async (e) => {
 
-        const user = await (await (await window.fetch('/api/me')).json())['name'];
+
+        const replyArea = document.getElementById('reply')
+        const queryTextArea = document.getElementById('ask')
+        const askButton = document.getElementById('askButton')
+        askButton.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const query = queryTextArea.value;
+            // console.log('gonna send the following query ' + query)
+            const response = await fetch(`/assistant/ask?question=${encodeURIComponent(query)}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+                // body: JSON.stringify({ question : question }),
+            });
+            const data = await response.json();
+            console.log(data)
+            const separator = '</thinking>';
+            const reply = await data['reply']
+            let finalReply = reply
+            if (reply.indexOf(separator) != -1) {
+                finalReply = reply.split(separator)[1]
+            }
+
+            replyArea.innerHTML = finalReply
+        })
+
+
+        const user = await (await (await window.fetch('/dogs/me')).json())['name'];
 
         document.getElementsByClassName('username')[0].innerHTML = user;
 
         const contentDiv = document.getElementById('content');
 
-        const dogs = await (await window.fetch('/api/dogs')).json()
+        const dogs = await (await window.fetch('/dogs/dogs')).json()
 
         contentDiv.innerHTML = '';
 

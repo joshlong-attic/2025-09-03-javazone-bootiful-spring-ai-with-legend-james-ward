@@ -26,15 +26,26 @@ public class GatewayApplication {
 @Configuration
 class GatewayConfig {
 
+    @Order(0)
+    @Bean
+    RouterFunction<ServerResponse> assistantApiRoute() {
+        return route()
+                .before(BeforeFilterFunctions.rewritePath("/assistant/*", "/"))
+                .filter(FilterFunctions.uri("http://localhost:8083"))
+                .filter(TokenRelayFilterFunctions.tokenRelay())
+                .GET("/assistant/**", http())
+                .build();
+    }
+
 
     @Order(0)
     @Bean
-    RouterFunction<ServerResponse> httpApiRoute() {
+    RouterFunction<ServerResponse> dogsApiRoute() {
         return route()
-                .before(BeforeFilterFunctions.rewritePath("/api/*", "/"))
+                .before(BeforeFilterFunctions.rewritePath("/dogs/*", "/"))
                 .filter(FilterFunctions.uri("http://localhost:8080"))
                 .filter(TokenRelayFilterFunctions.tokenRelay())
-                .GET("/api/**", http())
+                .GET("/dogs/**", http())
                 .build();
     }
 
