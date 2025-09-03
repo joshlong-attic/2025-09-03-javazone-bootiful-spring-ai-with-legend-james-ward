@@ -14,8 +14,9 @@ Hi, Spring fans! In this installment I'm joined by the legendary James Ward, AWS
 - `beanregistrar` 
 - virtual threads
 - graalvm 
-- resource server 
-- auth
+- resource server
+
+## auth
 - passkeys 
 - ott 
 - oauth 
