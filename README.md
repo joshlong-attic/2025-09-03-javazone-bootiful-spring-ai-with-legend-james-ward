@@ -16,6 +16,7 @@ Hi, Spring fans! In this installment I'm joined by the legendary James Ward, AWS
 - virtual threads
 - graalvm 
 - resource server
+- "who let the dogs out?"
 
 ## auth
 - passkeys 

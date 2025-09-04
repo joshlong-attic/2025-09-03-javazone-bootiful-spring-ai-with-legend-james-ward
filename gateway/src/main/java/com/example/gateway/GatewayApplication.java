@@ -6,7 +6,6 @@ import org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions
 import org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions;
 import org.springframework.cloud.gateway.server.mvc.filter.TokenRelayFilterFunctions;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -21,41 +20,39 @@ public class GatewayApplication {
         SpringApplication.run(GatewayApplication.class, args);
     }
 
-}
 
-@Configuration
-class GatewayConfig {
-
-    @Order(0)
     @Bean
-    RouterFunction<ServerResponse> assistantApiRoute() {
-        return route()
-                .before(BeforeFilterFunctions.rewritePath("/assistant/*", "/"))
-                .filter(FilterFunctions.uri("http://localhost:8083"))
-                .filter(TokenRelayFilterFunctions.tokenRelay())
-                .GET("/assistant/**", http())
-                .build();
-    }
-
-
-    @Order(0)
-    @Bean
-    RouterFunction<ServerResponse> dogsApiRoute() {
-        return route()
-                .before(BeforeFilterFunctions.rewritePath("/dogs/*", "/"))
-                .filter(FilterFunctions.uri("http://localhost:8080"))
-                .filter(TokenRelayFilterFunctions.tokenRelay())
-                .GET("/dogs/**", http())
-                .build();
-    }
-
     @Order(1)
-    @Bean
     RouterFunction<ServerResponse> uiRoute() {
         return route()
                 .filter(FilterFunctions.uri("http://localhost:8020"))
                 .GET("/**", http())
                 .build();
     }
+
+    @Order(0)
+    @Bean
+    RouterFunction<ServerResponse> assistantRoute() {
+        return route()
+                .before(BeforeFilterFunctions.uri("http://localhost:8083"))
+                .filter(FilterFunctions.rewritePath("/assistant/*", "/"))
+                .filter(TokenRelayFilterFunctions.tokenRelay())
+                .GET("/assistant/**", http())
+                .build();
+    }
+
+
+
+    @Order(0)
+    @Bean
+    RouterFunction<ServerResponse> dogsRoute() {
+        return route()
+                .before(BeforeFilterFunctions.uri("http://localhost:8080"))
+                .filter(FilterFunctions.rewritePath("/dogs/*", "/"))
+                .filter(TokenRelayFilterFunctions.tokenRelay())
+                .GET("/dogs/**", http())
+                .build();
+    }
+
 
 }

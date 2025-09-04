@@ -19,25 +19,28 @@ public class SchedulerApplication {
     }
 
     @Bean
-    MethodToolCallbackProvider methodToolCallbackProvider(DogAdoptionScheduler scheduler) {
+    MethodToolCallbackProvider methodToolCallbackProvider(DogScheduler scheduler) {
         return MethodToolCallbackProvider
                 .builder()
                 .toolObjects(scheduler)
                 .build();
     }
 
+
 }
 
 @Service
-class DogAdoptionScheduler {
+class DogScheduler {
 
-    @Tool(description = "schedule an appointment to pickup a dog from a pooch palace location")
-    String schedule(@ToolParam(description = "the id of the dog") int dogId, @ToolParam(description = "the name of the dog") String dogName) {
+    @Tool(description = "schedule an appointment to pick up or adopt a dog from a Pooch Palace location")
+    String schedule(@ToolParam(description = "the id of the dog") int dogId,
+                    @ToolParam(description = "the name of the dog") String dogName) {
         var i = Instant
                 .now()
                 .plus(3, ChronoUnit.DAYS)
                 .toString();
-        System.out.println("scheduling " + dogId + '/' + dogName);
+        System.out.println("scheduling " + dogName + " for " + i);
+
         return i;
     }
 }
