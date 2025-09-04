@@ -28,6 +28,9 @@ Hi, Spring fans! In this installment I'm joined by the legendary James Ward, AWS
 - oauth client
 - ui 
 
+## use auth in dogs
+- filter in dogs on Principal name
+
 ## ai assistant
 - bedrock !!
 - assistant
@@ -39,4 +42,50 @@ Hi, Spring fans! In this installment I'm joined by the legendary James Ward, AWS
 
 ## mcp scheduler
 - scheduler
+
+
+
+# Setup
+
+```
+cd ui
+python3 -m http.server 8020
+```
+
+```
+docker compose up
+```
+
+```
+PGPASSWORD=secret psql -Umyuser -dmydatabase -hlocalhost -fdata.sql
+```
+
+```
+cd dogs
+./mvnw spring-boot:run
+```
+
+```
+cd auth
+./mvnw spring-boot:run
+```
+
+```
+cd gateway
+./mvnw spring-boot:run
+```
+
+```
+cd scheduler
+./mvnw spring-boot:run
+```
+
+```
+export SPRING_AI_BEDROCK_AWS_ACCESS_KEY=<YOURS>
+export SPRING_AI_BEDROCK_AWS_SECRET_KEY=<YOURS>
+cd assistant
+./mvnw spring-boot:run
+```
+
+http://127.0.0.1:8081/
 
