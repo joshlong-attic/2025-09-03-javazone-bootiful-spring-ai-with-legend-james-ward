@@ -14,6 +14,7 @@ Hi, Spring fans! In this installment I'm joined by the legendary James Ward, AWS
 - `beanregistrar`  - show `ApplicationRunner` 
 - api version api for retreiving dogs v1 and v2
 - virtual threads
+  - recovering reactives. it's very good.
 - graalvm 
 - resource server
 - "who let the dogs out?"
@@ -33,8 +34,10 @@ Hi, Spring fans! In this installment I'm joined by the legendary James Ward, AWS
 - filter the dogs on `Principal.name`
 
 ## assistant
+- Spring AI 1.0 Blogs
 - bedrock !!
 - assistant
+  - make sure controller response is a Map
 - rag
 - prompt 
 - tools 
@@ -47,6 +50,11 @@ Hi, Spring fans! In this installment I'm joined by the legendary James Ward, AWS
 
 
 # Setup
+
+1. AWS Console & API Keys
+1. Database
+1. UI
+
 
 ```
 cd ui
