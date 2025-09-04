@@ -1,12 +1,7 @@
 package com.example.dogs;
 
-import org.springframework.beans.factory.BeanRegistrar;
-import org.springframework.beans.factory.BeanRegistry;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.core.env.Environment;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.stereotype.Controller;
@@ -18,32 +13,10 @@ import java.util.Collection;
 import java.util.Map;
 
 @SpringBootApplication
-@Import(MyBeanRegistrar.class)
 public class DogsApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(DogsApplication.class, args);
-    }
-}
-
-//
-class Bar {
-}
-
-class Foo {
-
-    Foo(Bar bar) {
-        System.out.println("bar: " + bar);
-    }
-
-}
-// todo
-class MyBeanRegistrar implements BeanRegistrar {
-
-    @Override
-    public void register(BeanRegistry registry, Environment env) {
-        registry.registerBean(Bar.class);
-        registry.registerBean(Foo.class, spec -> spec.supplier((ctx) -> new Foo(ctx.bean(Bar.class))));
     }
 }
 
