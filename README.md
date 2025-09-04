@@ -11,8 +11,8 @@ Hi, Spring fans! In this installment I'm joined by the legendary James Ward, AWS
 
 ## dogs
 - no program would be complete without a hello world. BeanRegistrar used to register applicationRunner that prints hello world.
+- `beanregistrar`  - show `ApplicationRunner` 
 - api version api for retreiving dogs v1 and v2
-- `beanregistrar` 
 - virtual threads
 - graalvm 
 - resource server
@@ -28,10 +28,10 @@ Hi, Spring fans! In this installment I'm joined by the legendary James Ward, AWS
 - oauth client
 - ui 
 
-## use auth in dogs
-- filter in dogs on Principal name
+## dogs
+- filter the dogs on `Principal.name`
 
-## ai assistant
+## assistant
 - bedrock !!
 - assistant
 - rag
@@ -40,7 +40,7 @@ Hi, Spring fans! In this installment I'm joined by the legendary James Ward, AWS
 - mcp client for scheduler 
 - mcp client for google calendar
 
-## mcp scheduler
+## scheduler
 - scheduler
 
 
