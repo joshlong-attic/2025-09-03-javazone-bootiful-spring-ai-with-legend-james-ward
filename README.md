@@ -10,6 +10,7 @@ Hi, Spring fans! In this installment I'm joined by the legendary James Ward, AWS
 - java.. scripts!
 
 ## dogs
+- no program would be complete without a hello world. BeanRegistrar used to register applicationRunner that prints hello world.
 - api version api for retreiving dogs v1 and v2
 - `beanregistrar` 
 - virtual threads
