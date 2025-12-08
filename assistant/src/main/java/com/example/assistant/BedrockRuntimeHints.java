@@ -85,7 +85,8 @@ class BedrockRuntimeHints implements RuntimeHintsRegistrar {
 			try {
 				var clzz = ClassUtils.forName(c.getName(), getClass().getClassLoader());
 				if (Serializable.class.isAssignableFrom(clzz)) {
-					this.register(hints, classLoader, clzz.getName());
+					// this.register(hints, classLoader, clzz.getName());
+					hints.reflection().registerType(clzz, this.memberCategories);
 					hints.serialization().registerType(c);
 				}
 			} //
@@ -108,17 +109,15 @@ class BedrockRuntimeHints implements RuntimeHintsRegistrar {
 		hints.resources().registerPattern("software/amazon/awssdk/global/handlers/execution.interceptors");
 	}
 
-	private void register(RuntimeHints hints, ClassLoader classLoader, String className) {
-		for (var clzz : new String[] { className, className + "$Builder", className + "$BuilderImpl",
-				className + "$SerializableBuilder" }) {
-			try {
-				var clazz = Class.forName(clzz, false, classLoader);
-				hints.reflection().registerType(TypeReference.of(clazz), memberCategories);
-			} //
-			catch (Throwable e) {
-				this.log.trace("Failed to register Bedrock class {}", className, e);
-			}
-		}
-	}
+	/*
+	 * private void register(RuntimeHints hints, ClassLoader classLoader, String
+	 * className) { for (var clzz : new String[] { className, className + "$Builder",
+	 * className + "$BuilderImpl", className + "$SerializableBuilder" }) { try { var clazz
+	 * = Class.forName(clzz, false, classLoader);
+	 * hints.reflection().registerType(TypeReference.of(clazz), memberCategories); } //
+	 * catch (Throwable e) { this.log.trace("Failed to register Bedrock class {}",
+	 * className, e); } } }
+	 *
+	 */
 
 }
