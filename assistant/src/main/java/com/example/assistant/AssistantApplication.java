@@ -5,13 +5,19 @@ import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
+import org.springframework.ai.document.Document;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.aot.hint.MemberCategory;
+import org.springframework.aot.hint.RuntimeHints;
+import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportRuntimeHints;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +27,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.sql.DataSource;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -31,12 +38,6 @@ public class AssistantApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(AssistantApplication.class, args);
 	}
-
-	/*
-	 * @Bean McpSyncClient schedulerMcpClient() { var mcp = McpClient
-	 * .sync(HttpClientSseClientTransport.builder("http://localhost:8084").build())
-	 * .build(); mcp.initialize(); return mcp; }
-	 */
 
 	@Bean
 	QuestionAnswerAdvisor questionAnswerAdvisor(VectorStore dataSource) {
@@ -52,14 +53,39 @@ public class AssistantApplication {
 
 }
 
+interface DogRepository extends ListCrudRepository<Dog, Integer> {
+
+}
+
+record Dog(@Id int id, String description, String owner, String name) {
+}
+
 @Controller
 @ResponseBody
+@ImportRuntimeHints(AssistantController.Hints.class)
 class AssistantController {
+
+	static class Hints implements RuntimeHintsRegistrar {
+
+		@Override
+		public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+			hints.reflection().registerType(DogAdoptionSuggestion.class, MemberCategory.values());
+		}
+
+	}
 
 	private final ChatClient ai;
 
 	AssistantController(ChatClient.Builder ai, DogAdoptionScheduler scheduler,
-			QuestionAnswerAdvisor questionAnswerAdvisor, PromptChatMemoryAdvisor promptChatMemoryAdvisor) {
+			QuestionAnswerAdvisor questionAnswerAdvisor, VectorStore vectorStore, DogRepository repository,
+			PromptChatMemoryAdvisor promptChatMemoryAdvisor) {
+
+		repository.findAll().forEach(dog -> {
+			var dogument = new Document(
+					"id: %s, name: %s, description: %s".formatted(dog.id(), dog.name(), dog.description()));
+			vectorStore.add(List.of(dogument));
+		});
+
 		var prompt = """
 				You are an AI powered assistant to help people adopt a dog from the adoption\s
 				agency named Pooch Palace with locations in Oslo, Seoul, Denver, Tokyo, Singapore, Paris,\s
@@ -74,11 +100,19 @@ class AssistantController {
 			.build();
 	}
 
+	@GetMapping("/askso")
+	DogAdoptionSuggestion questionStructuredOutput(@RequestParam String question) {
+		return this.ai.prompt(question).call().entity(DogAdoptionSuggestion.class);
+	}
+
 	@GetMapping("/ask")
 	Map<String, String> question(@RequestParam String question) {
 		return Map.of("reply", Objects.requireNonNull(this.ai.prompt(question).call().content()));
 	}
 
+}
+
+record DogAdoptionSuggestion(int id, String name, String description) {
 }
 
 @Component
