@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -45,7 +46,7 @@ class BedrockRuntimeHints
 	/**
 	 * visible for testing
 	 */
-	List<TypeReference> find(String packageName) {
+	protected List<TypeReference> find(String packageName) {
 		var scanner = new ClassPathScanningCandidateComponentProvider(false) {
 			@Override
 			protected boolean isCandidateComponent(MetadataReader metadataReader) throws IOException {
@@ -58,11 +59,14 @@ class BedrockRuntimeHints
 			}
 
 		};
-		if (this.environment.get() != null)
+		if (this.environment.get() != null) {
 			scanner.setEnvironment(this.environment.get());
-
-		if (this.resourceLoader.get() != null)
+			this.log.debug("setting the environment ");
+		}
+		if (this.resourceLoader.get() != null) {
 			scanner.setResourceLoader(this.resourceLoader.get());
+			this.log.debug("setting the resource loader");
+		}
 
 		return scanner //
 			.findCandidateComponents(packageName) //
@@ -77,89 +81,13 @@ class BedrockRuntimeHints
 
 	@Override
 	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
-		// Register all services
-		registerBedrockService(hints, classLoader);
 		registerBedrockRuntimeService(hints, classLoader);
-		registerBedrockAgentService(hints, classLoader);
-		registerBedrockAgentRuntimeService(hints, classLoader);
-		// registerBedrockAgentCoreService(hints, classLoader);
-		// registerBedrockAgentCoreControlService(hints, classLoader);
-		// registerBedrockDataAutomationService(hints, classLoader);
-		// registerBedrockDataAutomationRuntimeService(hints, classLoader);
 
 		// Register serialization support
 		registerSerializationClasses(hints, classLoader);
 
 		// Register resources
 		registerResources(hints);
-	}
-
-	/**
-	 * Register Bedrock control plane service classes
-	 */
-	private void registerBedrockService(RuntimeHints hints, ClassLoader classLoader) {
-		var pkg = "software.amazon.awssdk.services.bedrock";
-
-		// Client classes
-		register(hints, classLoader, pkg + ".BedrockClient");
-		register(hints, classLoader, pkg + ".BedrockAsyncClient");
-		register(hints, classLoader, pkg + ".BedrockClientBuilder");
-		register(hints, classLoader, pkg + ".BedrockAsyncClientBuilder");
-		register(hints, classLoader, pkg + ".BedrockServiceClientConfiguration");
-
-		// Exception classes
-		var modelPkg = pkg + ".model";
-		register(hints, classLoader, modelPkg + ".AccessDeniedException");
-		register(hints, classLoader, modelPkg + ".ConflictException");
-		register(hints, classLoader, modelPkg + ".InternalServerException");
-		register(hints, classLoader, modelPkg + ".ResourceNotFoundException");
-		register(hints, classLoader, modelPkg + ".ServiceQuotaExceededException");
-		register(hints, classLoader, modelPkg + ".ThrottlingException");
-		register(hints, classLoader, modelPkg + ".TooManyTagsException");
-		register(hints, classLoader, modelPkg + ".ValidationException");
-
-		// Key request/response classes - major operations
-		register(hints, classLoader, modelPkg + ".CreateGuardrailRequest");
-		register(hints, classLoader, modelPkg + ".CreateGuardrailResponse");
-		register(hints, classLoader, modelPkg + ".GetGuardrailRequest");
-		register(hints, classLoader, modelPkg + ".GetGuardrailResponse");
-		register(hints, classLoader, modelPkg + ".UpdateGuardrailRequest");
-		register(hints, classLoader, modelPkg + ".UpdateGuardrailResponse");
-		register(hints, classLoader, modelPkg + ".DeleteGuardrailRequest");
-		register(hints, classLoader, modelPkg + ".DeleteGuardrailResponse");
-		register(hints, classLoader, modelPkg + ".ListGuardrailsRequest");
-		register(hints, classLoader, modelPkg + ".ListGuardrailsResponse");
-
-		register(hints, classLoader, modelPkg + ".CreateCustomModelRequest");
-		register(hints, classLoader, modelPkg + ".CreateCustomModelResponse");
-		register(hints, classLoader, modelPkg + ".GetCustomModelRequest");
-		register(hints, classLoader, modelPkg + ".GetCustomModelResponse");
-		register(hints, classLoader, modelPkg + ".ListCustomModelsRequest");
-		register(hints, classLoader, modelPkg + ".ListCustomModelsResponse");
-
-		register(hints, classLoader, modelPkg + ".GetFoundationModelRequest");
-		register(hints, classLoader, modelPkg + ".GetFoundationModelResponse");
-		register(hints, classLoader, modelPkg + ".ListFoundationModelsRequest");
-		register(hints, classLoader, modelPkg + ".ListFoundationModelsResponse");
-
-		register(hints, classLoader, modelPkg + ".CreateProvisionedModelThroughputRequest");
-		register(hints, classLoader, modelPkg + ".CreateProvisionedModelThroughputResponse");
-		register(hints, classLoader, modelPkg + ".GetProvisionedModelThroughputRequest");
-		register(hints, classLoader, modelPkg + ".GetProvisionedModelThroughputResponse");
-		register(hints, classLoader, modelPkg + ".UpdateProvisionedModelThroughputRequest");
-		register(hints, classLoader, modelPkg + ".UpdateProvisionedModelThroughputResponse");
-
-		register(hints, classLoader, modelPkg + ".TagResourceRequest");
-		register(hints, classLoader, modelPkg + ".TagResourceResponse");
-		register(hints, classLoader, modelPkg + ".UntagResourceRequest");
-		register(hints, classLoader, modelPkg + ".UntagResourceResponse");
-
-		// Core model classes
-		register(hints, classLoader, modelPkg + ".FoundationModelSummary");
-		register(hints, classLoader, modelPkg + ".GuardrailSummary");
-		register(hints, classLoader, modelPkg + ".CustomModelSummary");
-		register(hints, classLoader, modelPkg + ".ProvisionedModelSummary");
-		register(hints, classLoader, modelPkg + ".Tag");
 	}
 
 	private void registerBedrockRuntimeService(RuntimeHints hints, ClassLoader classLoader) {
@@ -251,171 +179,16 @@ class BedrockRuntimeHints
 		register(hints, classLoader, modelPkg + ".TokenUsage");
 	}
 
-	/**
-	 * Register Bedrock Agent service classes
-	 */
-	private void registerBedrockAgentService(RuntimeHints hints, ClassLoader classLoader) {
-		String pkg = "software.amazon.awssdk.services.bedrockagent";
-
-		// Client classes
-		register(hints, classLoader, pkg + ".BedrockAgentClient");
-		register(hints, classLoader, pkg + ".BedrockAgentAsyncClient");
-
-		// Exception classes
-		String modelPkg = pkg + ".model";
-		register(hints, classLoader, modelPkg + ".AccessDeniedException");
-		register(hints, classLoader, modelPkg + ".ConflictException");
-		register(hints, classLoader, modelPkg + ".ResourceNotFoundException");
-		register(hints, classLoader, modelPkg + ".ServiceQuotaExceededException");
-		register(hints, classLoader, modelPkg + ".ThrottlingException");
-		register(hints, classLoader, modelPkg + ".ValidationException");
-
-		// Key operations
-		register(hints, classLoader, modelPkg + ".CreateAgentRequest");
-		register(hints, classLoader, modelPkg + ".CreateAgentResponse");
-		register(hints, classLoader, modelPkg + ".GetAgentRequest");
-		register(hints, classLoader, modelPkg + ".GetAgentResponse");
-		register(hints, classLoader, modelPkg + ".UpdateAgentRequest");
-		register(hints, classLoader, modelPkg + ".UpdateAgentResponse");
-		register(hints, classLoader, modelPkg + ".DeleteAgentRequest");
-		register(hints, classLoader, modelPkg + ".DeleteAgentResponse");
-		register(hints, classLoader, modelPkg + ".ListAgentsRequest");
-		register(hints, classLoader, modelPkg + ".ListAgentsResponse");
-
-		register(hints, classLoader, modelPkg + ".CreateKnowledgeBaseRequest");
-		register(hints, classLoader, modelPkg + ".CreateKnowledgeBaseResponse");
-		register(hints, classLoader, modelPkg + ".GetKnowledgeBaseRequest");
-		register(hints, classLoader, modelPkg + ".GetKnowledgeBaseResponse");
-		register(hints, classLoader, modelPkg + ".UpdateKnowledgeBaseRequest");
-		register(hints, classLoader, modelPkg + ".UpdateKnowledgeBaseResponse");
-
-		register(hints, classLoader, modelPkg + ".CreateDataSourceRequest");
-		register(hints, classLoader, modelPkg + ".CreateDataSourceResponse");
-		register(hints, classLoader, modelPkg + ".StartIngestionJobRequest");
-		register(hints, classLoader, modelPkg + ".StartIngestionJobResponse");
-
-		// Core model classes
-		register(hints, classLoader, modelPkg + ".Agent");
-		register(hints, classLoader, modelPkg + ".AgentSummary");
-		register(hints, classLoader, modelPkg + ".KnowledgeBase");
-		register(hints, classLoader, modelPkg + ".KnowledgeBaseConfiguration");
-		register(hints, classLoader, modelPkg + ".DataSource");
-		register(hints, classLoader, modelPkg + ".DataSourceConfiguration");
-	}
-
 	private String resolveSubpackage(String pkg) {
 		return ROOT_PACKAGE + "." + pkg;
 	}
 
-	/**
-	 * Register Bedrock Agent Runtime service classes
-	 */
-	private void registerBedrockAgentRuntimeService(RuntimeHints hints, ClassLoader classLoader) {
-		var pkg = "software.amazon.awssdk.services.bedrockagentruntime";
-
-		// Client classes
-		register(hints, classLoader, pkg + ".BedrockAgentRuntimeClient");
-		register(hints, classLoader, pkg + ".BedrockAgentRuntimeAsyncClient");
-
-		// Exception classes
-		String modelPkg = pkg + ".model";
-		register(hints, classLoader, modelPkg + ".AccessDeniedException");
-		register(hints, classLoader, modelPkg + ".BadGatewayException");
-		register(hints, classLoader, modelPkg + ".ConflictException");
-		register(hints, classLoader, modelPkg + ".DependencyFailedException");
-		register(hints, classLoader, modelPkg + ".InternalServerException");
-		register(hints, classLoader, modelPkg + ".ResourceNotFoundException");
-		register(hints, classLoader, modelPkg + ".ThrottlingException");
-		register(hints, classLoader, modelPkg + ".ValidationException");
-
-		// Core operations
-		register(hints, classLoader, modelPkg + ".InvokeAgentRequest");
-		register(hints, classLoader, modelPkg + ".InvokeAgentResponse");
-		register(hints, classLoader, modelPkg + ".InvokeFlowRequest");
-		register(hints, classLoader, modelPkg + ".InvokeFlowResponse");
-		register(hints, classLoader, modelPkg + ".RetrieveRequest");
-		register(hints, classLoader, modelPkg + ".RetrieveResponse");
-		register(hints, classLoader, modelPkg + ".RetrieveAndGenerateRequest");
-		register(hints, classLoader, modelPkg + ".RetrieveAndGenerateResponse");
-		register(hints, classLoader, modelPkg + ".RerankRequest");
-		register(hints, classLoader, modelPkg + ".RerankResponse");
-
-		// Model classes
-		register(hints, classLoader, modelPkg + ".KnowledgeBaseRetrievalResult");
-		register(hints, classLoader, modelPkg + ".RetrievalResult");
-		register(hints, classLoader, modelPkg + ".Citation");
-		register(hints, classLoader, modelPkg + ".Trace");
-		register(hints, classLoader, modelPkg + ".OrchestrationTrace");
+	private void debug(String pkg) {
+		IO.println("[======]");
+		IO.println(pkg.toUpperCase(Locale.ROOT));
+		this.find(pkg).forEach(x -> IO.println(x.getName()));
+		IO.println("[======]");
 	}
-
-	// /**
-	// * Register Bedrock Agent Core service classes
-	// */
-	// private void registerBedrockAgentCoreService(RuntimeHints hints, ClassLoader
-	// classLoader) {
-	// var pkg = "software.amazon.awssdk.services.bedrockagentcore";
-	// this.find(pkg).forEach(k -> log.info("found agentcore {} in {}", k.getName(),
-	// pkg));
-	// register(hints, classLoader, pkg + ".BedrockAgentCoreClient");
-	// register(hints, classLoader, pkg + ".BedrockAgentCoreAsyncClient");
-	//
-	// var modelPkg = pkg + ".model";
-	// register(hints, classLoader, modelPkg + ".GetMemoryRecordInput");
-	// register(hints, classLoader, modelPkg + ".GetMemoryRecordOutput");
-	// register(hints, classLoader, modelPkg + ".ListMemoryRecordsInput");
-	// register(hints, classLoader, modelPkg + ".ListMemoryRecordsOutput");
-	// }
-
-	/**
-	 * Register Bedrock Agent Core Control service classes
-	 */
-	// private void registerBedrockAgentCoreControlService(RuntimeHints hints, ClassLoader
-	// classLoader) {
-	// String pkg = "software.amazon.awssdk.services.bedrockagentcorecontrol";
-	// register(hints, classLoader, pkg + ".BedrockAgentCoreControlClient");
-	// register(hints, classLoader, pkg + ".BedrockAgentCoreControlAsyncClient");
-	//
-	// String modelPkg = pkg + ".model";
-	// register(hints, classLoader, modelPkg + ".CreateMemoryInput");
-	// register(hints, classLoader, modelPkg + ".CreateMemoryOutput");
-	// register(hints, classLoader, modelPkg + ".GetMemoryInput");
-	// register(hints, classLoader, modelPkg + ".GetMemoryOutput");
-	// }
-
-	/**
-	 * Register Bedrock Data Automation service classes
-	 *//*
-		 * private void registerBedrockDataAutomationService(RuntimeHints hints,
-		 * ClassLoader classLoader) { String pkg =
-		 * "software.amazon.awssdk.services.bedrockdataautomation"; register(hints,
-		 * classLoader, pkg + ".BedrockDataAutomationClient"); register(hints,
-		 * classLoader, pkg + ".BedrockDataAutomationAsyncClient");
-		 *
-		 * String modelPkg = pkg + ".model"; register(hints, classLoader, modelPkg +
-		 * ".CreateDataAutomationProjectRequest"); register(hints, classLoader, modelPkg +
-		 * ".CreateDataAutomationProjectResponse"); register(hints, classLoader, modelPkg
-		 * + ".GetDataAutomationProjectRequest"); register(hints, classLoader, modelPkg +
-		 * ".GetDataAutomationProjectResponse"); }
-		 */
-	/*
-	 */
-	/**
-	 * Register Bedrock Data Automation Runtime service classes
-	 *//*
-		 * private void registerBedrockDataAutomationRuntimeService(RuntimeHints hints,
-		 * ClassLoader classLoader) { var clzz = new TypeReference[]{
-		 *
-		 * BedrockDataAutomationRuntimeClient.class };
-		 *
-		 * var pkg = "software.amazon.awssdk.services.bedrockdataautomationruntime";
-		 * this.register(hints, classLoader, pkg + ".BedrockDataAutomationRuntimeClient");
-		 * this.register(hints, classLoader, pkg +
-		 * ".BedrockDataAutomationRuntimeAsyncClient");
-		 *
-		 * var modelPkg = pkg + ".model"; this.register(hints, classLoader, modelPkg +
-		 * ".InvokeDataAutomationRequest"); this.register(hints, classLoader, modelPkg +
-		 * ".InvokeDataAutomationResponse"); }
-		 */
 
 	static final String ROOT_PACKAGE = "software.amazon.awssdk";
 
@@ -426,7 +199,6 @@ class BedrockRuntimeHints
 			try {
 				var clzz = ClassUtils.forName(c.getName(), getClass().getClassLoader());
 				if (Serializable.class.isAssignableFrom(clzz)) {
-					this.log.info("Registering serializable class {}", clzz);
 					this.register(hints, classLoader, clzz.getName());
 					hints.serialization().registerType(c);
 				}
