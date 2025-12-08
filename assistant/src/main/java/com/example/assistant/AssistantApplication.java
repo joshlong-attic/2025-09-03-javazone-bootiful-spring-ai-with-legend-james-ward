@@ -1,27 +1,25 @@
 package com.example.assistant;
 
-import io.modelcontextprotocol.client.McpClient;
-import io.modelcontextprotocol.client.McpSyncClient;
-import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
-import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.sql.DataSource;
-import java.security.Principal;
 import java.util.Map;
+import java.util.Objects;
 
+@ImportRuntimeHints(BedrockRuntimeHints.class)
 @SpringBootApplication
 public class AssistantApplication {
 
@@ -29,6 +27,7 @@ public class AssistantApplication {
         SpringApplication.run(AssistantApplication.class, args);
     }
 
+    /*
     @Bean
     McpSyncClient schedulerMcpClient() {
         var mcp = McpClient
@@ -37,10 +36,11 @@ public class AssistantApplication {
         mcp.initialize();
         return mcp;
     }
+    */
 
     @Bean
     QuestionAnswerAdvisor questionAnswerAdvisor(VectorStore dataSource) {
-        return new QuestionAnswerAdvisor(dataSource);
+        return QuestionAnswerAdvisor.builder(dataSource).build();
     }
 
     @Bean
@@ -66,7 +66,6 @@ class AssistantController {
     private final ChatClient ai;
 
     AssistantController(ChatClient.Builder ai,
-                        McpSyncClient schedulerMcpClient ,
                         QuestionAnswerAdvisor questionAnswerAdvisor,
                         PromptChatMemoryAdvisor promptChatMemoryAdvisor) {
         var prompt = """
@@ -78,17 +77,18 @@ class AssistantController {
                 """;
         this.ai = ai
                 .defaultSystem(prompt)
-                .defaultToolCallbacks(new SyncMcpToolCallbackProvider(schedulerMcpClient))
+//                .defaultToolCallbacks(SyncMcpToolCallbackProvider.syncToolCallbacks(schedulerMcpClient))
                 .defaultAdvisors(promptChatMemoryAdvisor, questionAnswerAdvisor)
                 .build();
     }
 
     @GetMapping("/ask")
-    Map<String, String> question(Principal principal, @RequestParam String question) {
-        return Map.of("reply", this.ai
+    Map<String, String> question(@RequestParam String question) {
+        return Map.of("reply", Objects.requireNonNull(this.ai
                 .prompt(question)
                 .call()
-                .content());
+                .content()));
     }
 }
+
 
