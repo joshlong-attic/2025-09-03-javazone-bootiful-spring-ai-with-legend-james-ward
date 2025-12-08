@@ -109,7 +109,6 @@ class BedrockRuntimeHints implements RuntimeHintsRegistrar {
 			.filter(x -> !x.contains("package-info"))
 			.map(TypeReference::of) //
 			.toList();
-
 	}
 
 }
