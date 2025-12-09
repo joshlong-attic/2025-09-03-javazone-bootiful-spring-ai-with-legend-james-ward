@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.repository.ListCrudRepository;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,6 +52,11 @@ public class AssistantApplication {
 		return PromptChatMemoryAdvisor.builder(mwa).build();
 	}
 
+	@Bean
+	JdbcClient jdbcClient(DataSource dataSource) {
+		return JdbcClient.create(dataSource);
+	}
+
 }
 
 interface DogRepository extends ListCrudRepository<Dog, Integer> {
@@ -76,16 +82,20 @@ class AssistantController {
 
 	private final ChatClient ai;
 
-	AssistantController(ChatClient.Builder ai, DogAdoptionScheduler scheduler,
+	AssistantController(ChatClient.Builder ai, JdbcClient db, DogAdoptionScheduler scheduler,
 			QuestionAnswerAdvisor questionAnswerAdvisor, VectorStore vectorStore, DogRepository repository,
 			PromptChatMemoryAdvisor promptChatMemoryAdvisor) {
 
-		repository.findAll().forEach(dog -> {
-			var dogument = new Document(
-					"id: %s, name: %s, description: %s".formatted(dog.id(), dog.name(), dog.description()));
-			vectorStore.add(List.of(dogument));
-		});
-
+		if (db.sql("select count(id) as c from vector_store ")//
+			.query((rs, rowNum) -> rs.getLong("c")) //
+			.single() //
+			.intValue() == 0) {
+			repository.findAll().forEach(dog -> {
+				var dogument = new Document(
+						"id: %s, name: %s, description: %s".formatted(dog.id(), dog.name(), dog.description()));
+				vectorStore.add(List.of(dogument));
+			});
+		}
 		var prompt = """
 				You are an AI powered assistant to help people adopt a dog from the adoption\s
 				agency named Pooch Palace with locations in Oslo, Seoul, Denver, Tokyo, Singapore, Paris,\s
